@@ -1,0 +1,4 @@
+﻿  UnitTest1.cpp
+C:\Users\Arsen\source\repos\lab_11_4\lab_11_4\lab_11_4.cpp(260,11): warning C4244: инициализация: преобразование "std::streamoff" в "int", возможна потеря данных
+C:\Users\Arsen\source\repos\lab_11_4\lab_11_4\lab_11_4.cpp(294,11): warning C4244: инициализация: преобразование "std::streamoff" в "int", возможна потеря данных
+  UnitTest1.vcxproj -> C:\Users\Arsen\source\repos\lab_11_4\Debug\UnitTest1.dll
