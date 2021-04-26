@@ -21,12 +21,17 @@ void FiltrShop(char* fname);
 bool FiltrPrice(char* fname, double min, double max);
 void SortShop(char* fname);
 void SortPrice(char* fname);
+void EditFile(char* fname, const char* gname);
+void AddGoods(char* fname, const char* gname);
+void EditGoods(char* fname);
+void DelGoods(char* fname, const char* gname);
 
 int main()
 {
 	SetConsoleCP(1251); // встановлення сторінки win-cp1251 в потік вводу
 	SetConsoleOutputCP(1251); // встановлення сторінки win-cp1251 в потік виводу
 	char fname[61];
+	char gname[61];
 	char ch;
 	double min, max;
 	do
@@ -38,7 +43,8 @@ int main()
 		cout << "[3] - фільтрування по магазинам;" << endl;
 		cout << "[4] - фільтрування по цінам;" << endl;
 		cout << "[5] - сортуванням по магазинам;" << endl;
-		cout << "[6] - сортування по цінам;" << endl << endl;
+		cout << "[6] - сортування по цінам;" << endl;
+		cout << "[7] - редагування данних" << endl << endl;
 
 		cout << "[0] - завершення роботи." << endl << endl;
 		cout << "Ваш вибір: "; cin >> ch;
@@ -96,6 +102,14 @@ int main()
 			cout << endl;
 			cout << "Файл відсортовано!" << endl;
 			Print(fname);
+			break;
+		case '7':
+			cin.get(); // очищуємо буфер клавіатури – щоб не було символу
+			cin.sync(); // "кінець рядка", який залишився після вводу числа
+			cout << endl;
+			cout << "Введіть назву файлу: "; cin.getline(fname, sizeof(fname));
+			cout << endl;
+			EditFile(fname, "helper.dat");
 			break;
 		default:
 			cout << "Помилка вводу! ";
@@ -263,7 +277,6 @@ void SortShop(char* fname) {
 	Goods* goods = new Goods[size];
 	Goods temp;
 	f.read((char*)goods, size * sizeof(Goods));
-	f.close();
 	for (int i = 0; i < size - 1; i++) { // Сортування бульбашкою
 		for (int j = size - 1; j > i; j--) {
 			string shopOne = goods[j].shop;
@@ -312,4 +325,149 @@ void SortPrice(char* fname) {
 	ofstream file(fname, ios::binary);
 	file.write((char*)goods, size * sizeof(Goods));
 	file.close();
+}
+
+void EditFile(char* fname, const char* gname) {
+	ifstream f(fname, ios::binary);
+	if (!f)
+	{
+		cerr << "Помилка відкриття файлу '" << fname << "'" << endl;
+		f.close();
+		return;
+	}
+	char ch;
+	f.seekg(0, ios::end);
+	int size = f.tellg();
+	size = size / sizeof(Goods);
+	f.seekg(0, ios::beg);
+	cout << endl;
+	cout << "Кількість товарів у списку: " << size << endl << endl;
+	cout << "[1] - добавити новий товар" << endl;
+	cout << "[2] - редагувати інформацію про товар" << endl;
+	cout << "[3] - вилучити товар" << endl << endl;
+
+	cout << "[0] - вихід" << endl << endl;
+	cout << "Ваш вибір: "; cin >> ch;
+	switch (ch) {
+	case '0':
+		f.close();
+		return;
+		break;
+	case '1':
+		AddGoods(fname, gname);
+		break;
+
+	case '2':
+		EditGoods(fname);
+		break;
+	case '3':
+		DelGoods(fname, gname);
+	default:
+		cout << "Помилка вводу! " << endl;
+	}
+
+}
+
+void AddGoods(char* fname, const char* gname) {
+	ifstream f(fname, ios::binary);
+	f.seekg(0, ios::end);
+	int size = f.tellg();
+	size = size / sizeof(Goods);
+	f.seekg(0, ios::beg);
+	ofstream g(gname, ios::binary);
+	cout << endl;
+	Goods goods;
+	int k = 0;
+	while (k < size) {
+		f.read((char*)&goods, sizeof(Goods));
+		g.write((char*)&goods, sizeof(Goods));
+		k++;
+	}
+	cout << "Назва товару: "; cin >> goods.name;
+	cout << "Магазин: "; cin >> goods.shop;
+	cout << "Ціна(UAH): "; cin >> goods.price;
+	cout << "Кількість: "; cin >> goods.amount;
+	cout << "Од. вимірювання: "; cin >> goods.measurement;
+	if (!g.write((char*)&goods, sizeof(Goods)))
+	{
+		cerr << "Помилка запису у файл." << endl;
+	}
+	f.close();
+	g.close();
+	ofstream file(fname, ios::binary);
+	ifstream gfile(gname, ios::binary);
+	while (gfile.read((char*)&goods, sizeof(Goods))) {
+		file.write((char*)&goods, sizeof(Goods));
+	}
+	file.close();
+	gfile.close();
+	cout << endl;
+	cout << "Товар успішно додано" << endl;
+	cout << endl;
+}
+
+
+void EditGoods(char* fname) {
+	ifstream f(fname, ios::binary);
+	f.seekg(0, ios::end);
+	int size = f.tellg();
+	size = size / sizeof(Goods);
+	f.seekg(0, ios::beg);
+	Goods* goods = new Goods[size];
+	Goods temp;
+	f.read((char*)goods, size * sizeof(Goods));
+	int numb;
+	cout << "Номер товару для редагування: "; cin >> numb;
+	if (numb > size) {
+		cout << endl;
+		cout << "Схоже ви ввели неправильний номер товару, будь ласка повторіть спробу з правильним номером товару." << endl << endl;
+	}
+	else {
+		cout << endl;
+		cout << "Назва товару: "; cin >> goods[numb-1].name;
+		cout << "Магазин: "; cin >> goods[numb-1].shop;
+		cout << "Ціна(UAH): "; cin >> goods[numb-1].price;
+		cout << "Кількість: "; cin >> goods[numb-1].amount;
+		cout << "Од. вимірювання: "; cin >> goods[numb-1].measurement;
+		cout << endl;
+	}
+	f.close();
+	ofstream file(fname, ios::binary);
+	file.write((char*)goods, size * sizeof(Goods));
+	cout << endl;
+	cout << "Данні про файл успішно змінені." << endl << endl;
+	file.close();
+}
+
+void DelGoods(char* fname, const char* gname) {
+	ifstream f(fname, ios::binary);
+	f.seekg(0, ios::end);
+	int size = f.tellg();
+	size = size / sizeof(Goods);
+	f.seekg(0, ios::beg);
+	ofstream g(gname, ios::binary);
+	cout << endl;
+	int numb;
+	cout << "Введіть номер товару, який потрібно видалити: "; cin >> numb;
+	Goods goods;
+	int k = 1;
+	while (k <= size) {
+		if (k != numb) {
+			f.read((char*)&goods, sizeof(Goods));
+			g.write((char*)&goods, sizeof(Goods));
+		}
+		k++;
+	}
+	f.close();
+	g.close();
+	ofstream file(fname, ios::binary);
+	ifstream gfile(gname, ios::binary);
+	while (gfile.read((char*)&goods, sizeof(Goods))) {
+		file.write((char*)&goods, sizeof(Goods));
+	}
+	file.close();
+	gfile.close();
+	cout << endl;
+	cout << "Товар успішно видалено" << endl;
+	cout << endl;
 }
