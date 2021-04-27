@@ -362,6 +362,7 @@ void EditFile(char* fname, const char* gname) {
 		break;
 	case '3':
 		DelGoods(fname, gname);
+		break;
 	default:
 		cout << "Помилка вводу! " << endl;
 	}
